@@ -9,11 +9,11 @@ class Blake2Conan(ConanFile):
 	settings = "os", "compiler", "build_type", "arch"
 	options = {
 		"shared": [True, False],
-		"SSE": [True, False]
+		"SSE": ["None", "SSE2", "SSE3", "SSE4_1", "AVX", "XOP"]
 	}
 	default_options = (
 		"shared=False",
-		"SSE=False"
+		"SSE=None"
 	)
 	generators = "cmake"
 	exports_sources = "CMakeLists.txt"
@@ -23,15 +23,15 @@ class Blake2Conan(ConanFile):
 
 	def build(self):
 		cmake = CMake(self)
-		cmake.configure(source_folder=self.source_folder)
 		cmake.definitions["SSE"] = self.options.SSE
+		cmake.configure(source_folder=self.source_folder)
 		cmake.build()
 
 	def package(self):
-		if self.options.SSE:
-			self.copy("blake2*.h", dst="include", src="BLAKE2/sse")
-		else:
+		if self.options.SSE == "None":
 			self.copy("blake2*.h", dst="include", src="BLAKE2/ref")
+		else:
+			self.copy("blake2*.h", dst="include", src="BLAKE2/sse")
 
 		self.copy("*.lib", dst="lib", keep_path=False)
 		self.copy("*.dll", dst="bin", keep_path=False)
